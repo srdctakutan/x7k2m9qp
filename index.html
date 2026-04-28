@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ロングトーンコンテスト</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: 100dvh;
+            margin: 0;
+            padding: 16px;
+            background-color: #f0f2f5;
+            color: #333;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        #container {
+            padding: 1.5em;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            color: #1a73e8;
+            margin-top: 0;
+            font-size: 1.4em;
+        }
+
+        #status {
+            font-size: 1.3em;
+            font-weight: bold;
+            min-height: 50px;
+            margin: 16px 0;
+            color: #5f6368;
+            line-height: 1.4;
+        }
+
+        #timer {
+            font-size: 3.5em;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            color: #333;
+            margin-bottom: 16px;
+            transition: color 0.3s;
+        }
+
+        #timer.active {
+            color: #e8453c;
+        }
+
+        /* 音量メーター */
+        #volumeMeterContainer {
+            width: 100%;
+            height: 24px;
+            background-color: #e8eaed;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        #volumeMeter {
+            height: 100%;
+            width: 0%;
+            border-radius: 12px;
+            transition: width 0.08s ease-out, background-color 0.2s;
+            background: linear-gradient(90deg, #34a853, #fbbc04, #ea4335);
+            background-size: 300% 100%;
+        }
+
+        #volumeLabel {
+            font-size: 0.8em;
+            color: #999;
+            margin-bottom: 16px;
+            height: 1.2em;
+        }
+
+        /* 閾値ライン */
+        #thresholdLine {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1;
+        }
+
+        #thresholdLabel {
+            position: absolute;
+            top: -18px;
+            font-size: 0.6em;
+            color: #666;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+
+        /* パルスアニメーション */
+        @keyframes pulse {
+            0% { box-shadow: 0 4px 20px rgba(232, 69, 60, 0.1); }
+            50% { box-shadow: 0 4px 30px rgba(232, 69, 60, 0.4); }
+            100% { box-shadow: 0 4px 20px rgba(232, 69, 60, 0.1); }
+        }
+
+        #container.measuring {
+            animation: pulse 1s infinite;
+        }
+
+        /* 波形キャンバス */
+        #waveformCanvas {
+            width: 100%;
+            height: 60px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        #startButton {
+            font-size: 1.2em;
+            padding: 14px 32px;
+            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            background-color: #1a73e8;
+            color: white;
+            transition: background-color 0.3s, transform 0.1s;
+            width: 100%;
+            max-width: 280px;
+            touch-action: manipulation;
+        }
+
+        #startButton:disabled {
+            background-color: #9e9e9e;
+            cursor: not-allowed;
+        }
+
+        #startButton:hover:not(:disabled) {
+            background-color: #185abc;
+        }
+
+        #startButton:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        #result {
+            margin-top: 16px;
+            font-size: 1.3em;
+            font-weight: bold;
+            min-height: 1.5em;
+        }
+
+        #result.excellent { color: #e8453c; }
+        #result.great { color: #e8913c; }
+        #result.good { color: #34a853; }
+        #result.normal { color: #1a73e8; }
+
+        /* カウントダウンオーバーレイ */
+        #countdownOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            flex-direction: column;
+        }
+
+        #countdownOverlay.visible {
+            display: flex;
+        }
+
+        #countdownNumber {
+            font-size: 8em;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: countPop 0.5s ease-out;
+        }
+
+        #calibrationStatus {
+            font-size: 1.2em;
+            color: #ccc;
+            margin-top: 20px;
+        }
+
+        #calibrationMeter {
+            width: 200px;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        #calibrationProgress {
+            height: 100%;
+            width: 0%;
+            background-color: #34a853;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        @keyframes countPop {
+            0% { transform: scale(1.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* エラー表示 */
+        #errorMessage {
+            display: none;
+            background: #fce8e6;
+            color: #c5221f;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        #errorMessage.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="container">
+        <h1>🎤 ロングトーンコンテスト</h1>
+        <div id="status">ボタンを押してスタート</div>
+        <div id="timer">0.00 s</div>
+
+        <canvas id="waveformCanvas" height="60"></canvas>
+
+        <div id="volumeMeterContainer">
+            <div id="thresholdLine">
+                <span id="thresholdLabel">判定ライン</span>
+            </div>
+            <div id="volumeMeter"></div>
+        </div>
+        <div id="volumeLabel"></div>
+
+        <button id="startButton">🎤 スタート</button>
+        <div id="result"></div>
+        <div id="errorMessage"></div>
+    </div>
+
+    <!-- カウントダウン＆キャリブレーションオーバーレイ -->
+    <div id="countdownOverlay">
+        <div id="countdownNumber"></div>
+        <div id="calibrationStatus"></div>
+        <div id="calibrationMeter">
+            <div id="calibrationProgress"></div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // DOM要素
+        // ============================================
+        const startButton = document.getElementById('startButton');
+        const statusDiv = document.getElementById('status');
+        const timerDiv = document.getElementById('timer');
+        const resultDiv = document.getElementById('result');
+        const errorMessage = document.getElementById('errorMessage');
+        const volumeMeter = document.getElementById('volumeMeter');
+        const volumeLabel = document.getElementById('volumeLabel');
+        const thresholdLine = document.getElementById('thresholdLine');
+        const container = document.getElementById('container');
+        const waveformCanvas = document.getElementById('waveformCanvas');
+        const waveformCtx = waveformCanvas.getContext('2d');
+
+        // カウントダウンオーバーレイ
+        const countdownOverlay = document.getElementById('countdownOverlay');
+        const countdownNumber = document.getElementById('countdownNumber');
+        const calibrationStatus = document.getElementById('calibrationStatus');
+        const calibrationProgress = document.getElementById('calibrationProgress');
+
+        // ============================================
+        // Web Audio API 関連
+        // ============================================
+        let audioContext;
+        let analyser;
+        let mediaStreamSource;
+        let mediaStream;
+        let floatFrequencyData;
+        let timeDomainData;
+
+        // ============================================
+        // 定数
+        // ============================================
+        const MAX_DURATION_SEC = 120;           // 最大計測時間（秒）
+        const SILENCE_DURATION_MS = 500;        // 無音判定時間（ミリ秒）
+        const VOICE_START_TIMEOUT_MS = 5000;    // 発声待ちタイムアウト（ミリ秒）
+        const CALIBRATION_DURATION_MS = 8000;   // キャリブレーション時間（ミリ秒）
+        const COUNTDOWN_AFTER_CALIB = 3;        // キャリブレーション後のカウントダウン秒数
+        const THRESHOLD_MARGIN_DB = 10;         // 環境ノイズからのマージン（dB）
+        const ABSOLUTE_MIN_THRESHOLD_DB = -60;  // 閾値の下限
+        const ABSOLUTE_MAX_THRESHOLD_DB = -20;  // 閾値の上限
+
+        // 人声の周波数帯域（Hz）
+        const VOICE_FREQ_LOW = 80;
+        const VOICE_FREQ_HIGH = 400;
+
+        // ============================================
+        // 状態管理
+        // ============================================
+        let isMeasuring = false;
+        let isCalibrating = false;
+        let startTime = 0;
+        let animationFrameId;
+        let silenceStart = null;
+        let voiceWaitStart = null;
+        let dynamicThresholdDb = -50; // キャリブレーション後に設定される
+
+        // キャリブレーション用
+        let calibrationSamples = [];
+
+        // ============================================
+        // 初期化：キャンバスサイズ
+        // ============================================
+        function resizeCanvas() {
+            waveformCanvas.width = waveformCanvas.clientWidth * (window.devicePixelRatio || 1);
+            waveformCanvas.height = waveformCanvas.clientHeight * (window.devicePixelRatio || 1);
+            waveformCtx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // ============================================
+        // エラー表示
+        // ============================================
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('visible');
+        }
+
+        function hideError() {
+            errorMessage.classList.remove('visible');
+        }
+
+        // ============================================
+        // ブラウザ互換性チェック
+        // ============================================
+        function checkBrowserSupport() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showError('このブラウザはマイク機能に対応していません。Chrome、Safari等の最新ブラウザをお使いください。');
+                startButton.disabled = true;
+                return false;
+            }
+            if (!window.AudioContext && !window.webkitAudioContext) {
+                showError('このブラウザはWeb Audio APIに対応していません。Chrome、Safari等の最新ブラウザをお使いください。');
+                startButton.disabled = true;
+                return false;
+            }
+            return true;
+        }
+
+        checkBrowserSupport();
+
+        // ============================================
+        // 人声帯域のRMS（dB）を計算
+        // ============================================
+        function getVoiceBandRmsDb() {
+            analyser.getFloatFrequencyData(floatFrequencyData);
+
+            const sampleRate = audioContext.sampleRate;
+            const binCount = analyser.frequencyBinCount;
+            const freqPerBin = sampleRate / analyser.fftSize;
+
+            const lowBin = Math.floor(VOICE_FREQ_LOW / freqPerBin);
+            const highBin = Math.min(Math.ceil(VOICE_FREQ_HIGH / freqPerBin), binCount - 1);
+
+            let sumPower = 0;
+            let count = 0;
+
+            for (let i = lowBin; i <= highBin; i++) {
+                const db = floatFrequencyData[i];
+                // dBからパワーに変換して加算
+                const power = Math.pow(10, db / 10);
+                sumPower += power;
+                count++;
+            }
+
+            if (count === 0) return -90;
+
+            const rmsPower = sumPower / count;
+            const rmsDb = 10 * Math.log10(rmsPower + 1e-20); // 0除算防止
+            return rmsDb;
+        }
+
+        // ============================================
+        // 全帯域の最大dB（メーター表示用）
+        // ============================================
+        function getOverallMaxDb() {
+            analyser.getFloatFrequencyData(floatFrequencyData);
+            let maxDb = -Infinity;
+            for (let i = 0; i < floatFrequencyData.length; i++) {
+                if (floatFrequencyData[i] > maxDb) {
+                    maxDb = floatFrequencyData[i];
+                }
+            }
+            return maxDb;
+        }
+
+        // ============================================
+        // 音量メーター更新
+        // ============================================
+        function updateVolumeMeter(db) {
+            // -90dB 〜 -10dB を 0% 〜 100% にマッピング
+            const minDb = -90;
+            const maxDb = -10;
+            const pct = Math.max(0, Math.min(100, ((db - minDb) / (maxDb - minDb)) * 100));
+            volumeMeter.style.width = pct + '%';
+            // 色のグラデーション位置
+            volumeMeter.style.backgroundPosition = (100 - pct) + '% 0';
+        }
+
+        // ============================================
+        // 閾値ラインの位置更新
+        // ============================================
+        function updateThresholdLine() {
+            const minDb = -90;
+            const maxDb = -10;
+            const pct = Math.max(0, Math.min(100, ((dynamicThresholdDb - minDb) / (maxDb - minDb)) * 100));
+            thresholdLine.style.left = pct + '%';
+            thresholdLine.style.display = 'block';
+        }
+
+        // ============================================
+        // 波形描画
+        // ============================================
+        function drawWaveform() {
+            const canvasW = waveformCanvas.clientWidth;
+            const canvasH = waveformCanvas.clientHeight;
+
+            analyser.getByteTimeDomainData(timeDomainData);
+
+            waveformCtx.clearRect(0, 0, canvasW, canvasH);
+
+            // 背景
+            waveformCtx.fillStyle = '#f8f9fa';
+            waveformCtx.fillRect(0, 0, canvasW, canvasH);
+
+            // 中心線
+            waveformCtx.strokeStyle = '#e0e0e0';
+            waveformCtx.lineWidth = 1;
+            waveformCtx.beginPath();
+            waveformCtx.moveTo(0, canvasH / 2);
+            waveformCtx.lineTo(canvasW, canvasH / 2);
+            waveformCtx.stroke();
+
+            // 波形
+            waveformCtx.strokeStyle = isMeasuring ? '#e8453c' : '#1a73e8';
+            waveformCtx.lineWidth = 2;
+            waveformCtx.beginPath();
+
+            const sliceWidth = canvasW / timeDomainData.length;
+            let x = 0;
+
+            for (let i = 0; i < timeDomainData.length; i++) {
+                const v = timeDomainData[i] / 128.0;
+                const y = (v * canvasH) / 2;
+
+                if (i === 0) {
+                    waveformCtx.moveTo(x, y);
+                } else {
+                    waveformCtx.lineTo(x, y);
+                }
+                x += sliceWidth;
+            }
+
+            waveformCtx.stroke();
+        }
+
+        // ============================================
+        // Web Audio API ノード設定
+        // ============================================
+        function setupAudioNodes(stream) {
+            mediaStream = stream;
+            mediaStreamSource = audioContext.createMediaStreamSource(stream);
+
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 4096;
+            analyser.minDecibels = -90;
+            analyser.maxDecibels = -10;
+            analyser.smoothingTimeConstant = 0.8;
+
+            floatFrequencyData = new Float32Array(analyser.frequencyBinCount);
+            timeDomainData = new Uint8Array(analyser.fftSize);
+
+            mediaStreamSource.connect(analyser);
+        }
+
+        // ============================================
+        // マイクストリーム停止
+        // ============================================
+        function stopMicStream() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+        }
+
+        // ============================================
+        // スタートボタン
+        // ============================================
+        startButton.addEventListener('click', async () => {
+            startButton.disabled = true;
+            resultDiv.textContent = '';
+            resultDiv.className = '';
+            hideError();
+            timerDiv.textContent = '0.00 s';
+            timerDiv.classList.remove('active');
+            container.classList.remove('measuring');
+            volumeMeter.style.width = '0%';
+            volumeLabel.textContent = '';
+            thresholdLine.style.display = 'none';
+
+            try {
+                // AudioContext 初期化
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
+
+                // マイクアクセス取得
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false
+                    }
+                });
+
+                setupAudioNodes(stream);
+                startCalibration();
+
+            } catch (err) {
+                console.error('マイクアクセスエラー:', err);
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    showError('マイクへのアクセスが許可されていません。ブラウザの設定からマイクの使用を許可してください。');
+                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                    showError('マイクが見つかりません。マイク付きのイヤホンやデバイスのマイクが利用可能か確認してください。');
+                } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                    showError('マイクが他のアプリで使用中の可能性があります。他のアプリを閉じてから再試行してください。');
+                } else if (err.name === 'OverconstrainedError') {
+                    showError('マイクの設定でエラーが発生しました。別のブラウザでお試しください。');
+                } else {
+                    showError(`マイクの初期化中にエラーが発生しました: ${err.message || err.name}`);
+                }
+                statusDiv.textContent = 'エラーが発生しました';
+                startButton.disabled = false;
+            }
+        });
+
+        // ============================================
+        // キャリブレーション（環境ノイズ測定）
+        // ============================================
+        function startCalibration() {
+            isCalibrating = true;
+            calibrationSamples = [];
+
+            // オーバーレイ表示
+            countdownOverlay.classList.add('visible');
+            countdownNumber.textContent = '🔇';
+            calibrationStatus.textContent = '環境ノイズを測定中…\nお静かにお待ちください';
+            calibrationProgress.style.width = '0%';
+
+            const calibStartTime = performance.now();
+
+            function calibrationLoop() {
+                const elapsed = performance.now() - calibStartTime;
+                const progress = Math.min(100, (elapsed / CALIBRATION_DURATION_MS) * 100);
+                calibrationProgress.style.width = progress + '%';
+
+                // RMSを収集
+                const rmsDb = getVoiceBandRmsDb();
+                calibrationSamples.push(rmsDb);
+
+                // メーターも更新（視覚フィードバック）
+                updateVolumeMeter(rmsDb);
+                drawWaveform();
+
+                // 残り秒数表示
+                const remaining = Math.ceil((CALIBRATION_DURATION_MS - elapsed) / 1000);
+                countdownNumber.textContent = remaining > 0 ? remaining : '✓';
+
+                if (elapsed < CALIBRATION_DURATION_MS) {
+                    animationFrameId = requestAnimationFrame(calibrationLoop);
+                } else {
+                    // キャリブレーション完了
+                    finishCalibration();
+                }
+            }
+
+            animationFrameId = requestAnimationFrame(calibrationLoop);
+        }
+
+        function finishCalibration() {
+            isCalibrating = false;
+
+            // 環境ノイズの統計を計算
+            if (calibrationSamples.length === 0) {
+                dynamicThresholdDb = -50;
+            } else {
+                // 上位10%を除外した平均を算出（突発ノイズを除外）
+                const sorted = [...calibrationSamples].sort((a, b) => a - b);
+                const cutIndex = Math.floor(sorted.length * 0.9);
+                const trimmed = sorted.slice(0, cutIndex);
+
+                let sum = 0;
+                for (const val of trimmed) {
+                    sum += val;
+                }
+                const avgNoiseDb = trimmed.length > 0 ? sum / trimmed.length : -60;
+
+                // 標準偏差も計算して外れ値への耐性を高める
+                let sumSqDiff = 0;
+                for (const val of trimmed) {
+                    sumSqDiff += (val - avgNoiseDb) * (val - avgNoiseDb);
+                }
+                const stdDev = trimmed.length > 1 ? Math.sqrt(sumSqDiff / (trimmed.length - 1)) : 0;
+
+                // 閾値 = ノイズ平均 + マージン + 標準偏差
+                dynamicThresholdDb = avgNoiseDb + THRESHOLD_MARGIN_DB + stdDev;
+
+                // 閾値の範囲制限
+                dynamicThresholdDb = Math.max(ABSOLUTE_MIN_THRESHOLD_DB, Math.min(ABSOLUTE_MAX_THRESHOLD_DB, dynamicThresholdDb));
+            }
+
+            console.log(`キャリブレーション完了: 閾値 = ${dynamicThresholdDb.toFixed(1)} dB`);
+
+            // 閾値ライン表示
+            updateThresholdLine();
+
+            // カウントダウン開始
+            startFinalCountdown();
+        }
+
+        // ============================================
+        // キャリブレーション後のカウントダウン
+        // ============================================
+        function startFinalCountdown() {
+            let count = COUNTDOWN_AFTER_CALIB;
+            calibrationStatus.textContent = '間もなくスタート！';
+            calibrationProgress.style.width = '100%';
+            countdownNumber.textContent = count;
+            countdownNumber.style.animation = 'none';
+
+            const countdownInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownNumber.textContent = count;
+                    // アニメーションリトリガー
+                    countdownNumber.style.animation = 'none';
+                    void countdownNumber.offsetWidth;
+                    countdownNumber.style.animation = 'countPop 0.5s ease-out';
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownNumber.textContent = 'GO!';
+                    countdownNumber.style.animation = 'none';
+                    void countdownNumber.offsetWidth;
+                    countdownNumber.style.animation = 'countPop 0.5s ease-out';
+
+                    // 少し表示してからオーバーレイを閉じる
+                    setTimeout(() => {
+                        countdownOverlay.classList.remove('visible');
+                        startMeasurement();
+                    }, 600);
+                }
+            }, 1000);
+        }
+
+        // ============================================
+        // 計測開始
+        // ============================================
+        function startMeasurement() {
+            isMeasuring = false;
+            startTime = 0;
+            silenceStart = null;
+            voiceWaitStart = performance.now();
+
+            statusDiv.textContent = '🎤 声を出してください！';
+            volumeLabel.textContent = '判定ライン以上の声を検知すると計測開始';
+
+            detectSound();
+        }
+
+        // ============================================
+        // 音声検知ループ
+        // ============================================
+        function detectSound() {
+            const voiceRmsDb = getVoiceBandRmsDb();
+            const now = performance.now();
+
+            // メーター・波形更新
+            updateVolumeMeter(voiceRmsDb);
+            drawWaveform();
+
+            // --- 発声待ち中 ---
+            if (!isMeasuring) {
+                if (voiceRmsDb > dynamicThresholdDb) {
+                    // 発声検知 → 計測開始
+                    isMeasuring = true;
+                    startTime = now;
+                    silenceStart = null;
+                    statusDiv.textContent = '🔴 発声中…';
+                    timerDiv.classList.add('active');
+                    container.classList.add('measuring');
+                    volumeLabel.textContent = '';
+                } else {
+                    // タイムアウト判定
+                    if (now - voiceWaitStart > VOICE_START_TIMEOUT_MS) {
+                        endWithTimeout();
+                        return;
+                    }
+                    // 残り秒数表示
+                    const remaining = Math.ceil((VOICE_START_TIMEOUT_MS - (now - voiceWaitStart)) / 1000);
+                    statusDiv.textContent = `🎤 声を出してください！ (${remaining}s)`;
+                }
+
+                animationFrameId = requestAnimationFrame(detectSound);
+                return;
+            }
+
+            // --- 計測中 ---
+            const elapsedSec = (now - startTime) / 1000;
+
+            // 最大計測時間チェック
+            if (elapsedSec >= MAX_DURATION_SEC) {
+                endWithMaxTime();
+                return;
+            }
+
+            // タイマー表示更新
+            timerDiv.textContent = `${elapsedSec.toFixed(2)} s`;
+
+            // 発声/無音判定
+            if (voiceRmsDb > dynamicThresholdDb) {
+                // 発声継続中
+                silenceStart = null;
+            } else {
+                // 無音検知
+                if (silenceStart === null) {
+                    silenceStart = now;
+                } else if (now - silenceStart > SILENCE_DURATION_MS) {
+                    // 一定時間無音 → 計測終了
+                    const silenceDuration = now - silenceStart;
+                    stopMeasurement(silenceDuration);
+                    return;
+                }
+            }
+
+            animationFrameId = requestAnimationFrame(detectSound);
+        }
+
+        // ============================================
+        // 計測終了（通常終了）
+        // ============================================
+        function stopMeasurement(silenceDuration) {
+            cancelAnimationFrame(animationFrameId);
+            isMeasuring = false;
+
+            // 無音時間を差し引いた正味の発声時間
+            const finalTime = (performance.now() - silenceDuration - startTime) / 1000;
+            const clampedTime = Math.max(0, finalTime);
+
+            showResult(clampedTime, false);
+            cleanupAfterMeasurement();
+        }
+
+        // ============================================
+        // 最大時間到達による終了
+        // ============================================
+        function endWithMaxTime() {
+            cancelAnimationFrame(animationFrameId);
+            isMeasuring = false;
+
+            showResult(MAX_DURATION_SEC, true);
+            cleanupAfterMeasurement();
+        }
+
+        // ============================================
+        // 発声待ちタイムアウト
+        // ============================================
+        function endWithTimeout() {
+            cancelAnimationFrame(animationFrameId);
+            isMeasuring = false;
+
+            statusDiv.textContent = '⏱ タイムアウト';
+            resultDiv.textContent = '声が検知できませんでした。もう一度お試しください。';
+            resultDiv.className = '';
+            timerDiv.textContent = '0.00 s';
+
+            cleanupAfterMeasurement();
+        }
+
+        // ============================================
+        // 計測後の後片付け
+        // ============================================
+        function cleanupAfterMeasurement() {
+            timerDiv.classList.remove('active');
+            container.classList.remove('measuring');
+            stopMicStream();
+            startButton.disabled = false;
+            startButton.textContent = '🎤 もう一度挑戦';
+        }
+
+        // ============================================
+        // 結果表示
+        // ============================================
+        function showResult(timeSec, isMax) {
+            const displayTime = timeSec.toFixed(2);
+
+            timerDiv.textContent = `${displayTime} s`;
+
+            if (isMax) {
+                statusDiv.textContent = '🏆 MAX達成！！';
+                resultDiv.textContent = `🎉 最大記録 ${displayTime} 秒達成！素晴らしい！`;
+                resultDiv.className = 'excellent';
+            } else {
+                statusDiv.textContent = '✅ 終了！';
+
+                // ランク判定
+                let rank = '';
+                let rankClass = '';
+
+                if (timeSec >= 60) {
+                    rank = '🏆 超人級！';
+                    rankClass = 'excellent';
+                } else if (timeSec >= 30) {
+                    rank = '🥇 素晴らしい！';
+                    rankClass = 'great';
+                } else if (timeSec >= 15) {
+                    rank = '🥈 なかなか！';
+                    rankClass = 'good';
+                } else if (timeSec >= 5) {
+                    rank = '🥉 がんばりました！';
+                    rankClass = 'normal';
+                } else {
+                    rank = '💪 次はもっと伸ばそう！';
+                    rankClass = 'normal';
+                }
+
+                resultDiv.textContent = `記録: ${displayTime} 秒 ${rank}`;
+                resultDiv.className = rankClass;
+            }
+        }
+
+    </script>
+
+</body>
+</html>
+
+
