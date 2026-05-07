@@ -240,9 +240,233 @@
         #errorMessage.visible {
             display: block;
         }
-    </style>
+    
+
+/* ============================
+   Tune Life Labo v2 overlays
+   ============================ */
+:root{
+  --tunelife-teal:#00a5a8;
+  --tunelife-orange:#f47a20;
+  --primary-color:#4a90e2;
+  --warn-bg:#fff8e1;
+  --warn-border:#ffcc02;
+}
+
+/* full-screen overlay screens */
+.tl-overlay{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  background:rgba(255,255,255,0.96);
+  z-index:200;
+  overflow-y:auto;
+  padding:20px;
+}
+.tl-card{
+  width:100%;
+  max-width:420px;
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.12);
+  padding:20px;
+  margin-top:24px;
+}
+.tl-heading{
+  font-size:1.6em;
+  font-weight:900;
+  color:var(--tunelife-teal);
+  letter-spacing:0.5px;
+  line-height:1.2;
+  margin:0 0 6px 0;
+}
+.tl-heading .dai{
+  display:inline-block;
+  font-size:0.85em;
+  font-weight:800;
+  color:var(--tunelife-orange);
+  margin-left:4px;
+}
+.tl-title{
+  margin:0 0 12px 0;
+  font-size:1.35em;
+  color:#222;
+}
+.tl-info{
+  margin:10px 0 14px 0;
+  padding:10px 14px;
+  background:#e8f5e9;
+  border:1px solid #a5d6a7;
+  border-radius:10px;
+  font-size:0.86em;
+  line-height:1.7;
+  color:#2e7d32;
+  text-align:left;
+}
+.tl-info .strong{font-weight:700;}
+.tl-lead{
+  margin:10px 0 12px 0;
+  line-height:1.6;
+  color:#333;
+}
+.tl-label{
+  margin:0 0 6px 0;
+  font-weight:700;
+}
+.tl-input{
+  width:100%;
+  padding:10px 12px;
+  font-size:1em;
+  border:1px solid #ccc;
+  border-radius:10px;
+  outline:none;
+}
+.tl-input:focus{border-color:var(--primary-color); box-shadow:0 0 0 3px rgba(74,144,226,0.18);}
+.tl-error{
+  min-height:1.2em;
+  margin:6px 0 10px 0;
+  font-size:0.86em;
+  color:#e94e77;
+  text-align:left;
+}
+.tl-btn{
+  width:100%;
+  padding:14px 14px;
+  font-size:1.1em;
+  font-weight:800;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+  color:#fff;
+  background:var(--primary-color);
+}
+.tl-btn:disabled{opacity:0.6; cursor:not-allowed;}
+.tl-btn.secondary{
+  background:#f0f0f0;
+  color:#222;
+  font-weight:700;
+}
+.tl-btn.submit{
+  background:#28a745;
+}
+.tl-disclaimer{
+  margin-top:14px;
+  padding:12px 14px;
+  background:var(--warn-bg);
+  border:1px solid var(--warn-border);
+  border-radius:10px;
+  text-align:left;
+  font-size:0.78em;
+  line-height:1.65;
+  color:#555;
+}
+.tl-disclaimer .head{
+  font-weight:900;
+  color:#e65100;
+  margin-bottom:6px;
+  font-size:1.02em;
+}
+.tl-muted{color:#777; font-size:0.95em;}
+
+/* Make original container stay below overlays */
+#container{ position:relative; z-index:1; }
+
+/* Result screen specific */
+.tl-result-metric{
+  font-size:2.2em;
+  font-weight:900;
+  margin:14px 0 4px 0;
+}
+.tl-result-sub{
+  font-size:1.0em;
+  color:#444;
+  margin:0 0 12px 0;
+}
+.tl-kv{
+  margin:10px 0;
+  padding:10px 12px;
+  background:#f7f8fb;
+  border:1px solid #e7e9f2;
+  border-radius:10px;
+  text-align:left;
+  font-size:0.92em;
+  line-height:1.5;
+}
+.tl-status{
+  min-height:1.4em;
+  margin-top:10px;
+  font-size:0.92em;
+  color:#555;
+}
+
+</style>
 </head>
 <body>
+
+<!-- ============================
+     Tune Life Labo Start Screen
+     ============================ -->
+<div id="tlStartOverlay" class="tl-overlay">
+  <div class="tl-card">
+    <div class="tl-heading">Tune Life Labo<span class="dai">第2弾</span></div>
+    <div class="tl-title">ロングトーンコンテスト</div>
+
+    <div class="tl-info">
+      <div class="strong">配信期間：〜2026年〇月〇日まで</div>
+      <div>期間中何度でもチャレンジ可能！</div>
+      <div>参加特典：発声時間の長さでポイント数を付与（最大3000ポイント、期間中ハイスコア1回のみ）</div>
+    </div>
+
+    <div class="tl-lead">
+      ガイドに従ってできるだけ長く発声しよう。<br>
+      <span class="tl-muted">※最大120秒で終了します。無理のない範囲でチャレンジしてください。</span>
+    </div>
+
+    <div class="tl-label">確認コードを入力してください</div>
+    <input id="tlConfirmCodeInput" class="tl-input" type="text" placeholder="例：ABC-12345" autocomplete="off" inputmode="text">
+    <div id="tlCodeError" class="tl-error"></div>
+
+    <button id="tlStartButton" class="tl-btn">🎤 スタート</button>
+
+    <div class="tl-disclaimer">
+      <div class="head">⚠️ β版テスト運用中</div>
+      このコンテストは現在テスト運用中（β版）です。動作が不安定な場合や、予期しない不具合が発生する場合がございます。
+      あらかじめご了承のうえ、お楽しみください。<br>
+      <span class="tl-muted">※ 不具合等により特典の付与が正常に行われない場合がありますが、あらかじめご了承ください。</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+     Tune Life Labo Result Screen
+     ============================ -->
+<div id="tlResultOverlay" class="tl-overlay" style="display:none;">
+  <div class="tl-card">
+    <div class="tl-heading">Tune Life Labo<span class="dai">第2弾</span></div>
+    <div class="tl-title">ロングトーンコンテスト</div>
+
+    <div class="tl-result-metric" id="tlResultPoints">0 pt</div>
+    <div class="tl-result-sub" id="tlResultTime">発声時間: 0.00 秒</div>
+
+    <div class="tl-kv">
+      <div>確認コード：<strong id="tlResultCode">-</strong></div>
+      <div class="tl-muted" style="margin-top:6px;">ポイントは <b>1秒あたり100pt</b>（上限 <b>3000pt</b>、30秒相当）で算出します。</div>
+    </div>
+
+    <button id="tlSubmitButton" class="tl-btn submit">結果を送信する</button>
+    <div id="tlSubmitStatus" class="tl-status"></div>
+
+    <button id="tlRetryButton" class="tl-btn secondary">もう一度挑戦</button>
+    <button id="tlChangeCodeButton" class="tl-btn secondary" style="margin-top:8px;">確認コードを変更する</button>
+
+    <div class="tl-kv" style="margin-top:14px;">
+      <div class="tl-muted">配信終了後10日以内にポイントが付与されます。</div>
+    </div>
+  </div>
+</div>
+
 
     <div id="container">
         <h1>🎤 ロングトーンコンテスト</h1>
@@ -869,7 +1093,194 @@
             }
         }
 
-    </script>
+    
+
+// ============================================================
+// Tune Life Labo v2: Start/Result overlays + GAS submission
+//  - Keeps original measurement state machine intact
+//  - Adds confirm code gate and points calculation
+// ============================================================
+
+// ====== GAS Web App URL (replace after deployment) ======
+// 例: 'https://script.google.com/macros/s/XXXXXX/exec'
+const TL_GAS_URL = 'https://script.google.com/macros/s/AKfycbwIke-1lJaTm4FiLEbNey7jbpP4Gp5gsYkyKoiSPv12uaNoEkYZG3KyS0mzduOgpGI/exec';
+
+// ====== Simple API Key (should match GAS) ======
+// ※ 本番では秘匿推奨。現状は簡易キー（例）です。
+const TL_API_KEY = 'your-secret-key-2026-gw';
+
+// ====== Points rule ======
+// 1秒=100pt、上限3000pt（30秒相当）
+function calcPointsFromTimeSec(timeSec){
+  const pts = Math.floor(Math.max(0, timeSec) * 100);
+  return Math.min(3000, pts);
+}
+
+// ====== Overlay DOM ======
+const tlStartOverlay = document.getElementById('tlStartOverlay');
+const tlResultOverlay = document.getElementById('tlResultOverlay');
+const tlConfirmCodeInput = document.getElementById('tlConfirmCodeInput');
+const tlCodeError = document.getElementById('tlCodeError');
+const tlStartButton = document.getElementById('tlStartButton');
+const tlSubmitButton = document.getElementById('tlSubmitButton');
+const tlSubmitStatus = document.getElementById('tlSubmitStatus');
+const tlRetryButton = document.getElementById('tlRetryButton');
+const tlChangeCodeButton = document.getElementById('tlChangeCodeButton');
+const tlResultPoints = document.getElementById('tlResultPoints');
+const tlResultTime = document.getElementById('tlResultTime');
+const tlResultCode = document.getElementById('tlResultCode');
+
+let tlConfirmCode = '';
+let tlLastTimeSec = 0;
+let tlLastPoints = 0;
+
+function tlShowStart(){
+  tlStartOverlay.style.display = 'flex';
+  tlResultOverlay.style.display = 'none';
+  tlConfirmCodeInput.value = tlConfirmCode || '';
+  tlCodeError.textContent = '';
+}
+
+function tlShowResult(){
+  tlStartOverlay.style.display = 'none';
+  tlResultOverlay.style.display = 'flex';
+}
+
+// Start button (gate) -> trigger original startButton click
+// NOTE: original 'startButton' is the measurement start button in the app
+if (tlStartButton){
+  tlStartButton.addEventListener('click', () => {
+    const code = (tlConfirmCodeInput.value || '').toString().trim();
+    if(!code){
+      tlCodeError.textContent = '⚠️ 確認コードを入力してください';
+      return;
+    }
+    tlCodeError.textContent = '';
+    tlConfirmCode = code;
+
+    // Hide overlay and start original flow
+    tlStartOverlay.style.display = 'none';
+
+    // Reset any previous submit state
+    if (tlSubmitButton) tlSubmitButton.disabled = false;
+    if (tlSubmitStatus) { tlSubmitStatus.textContent = ''; tlSubmitStatus.style.color = '#555'; }
+
+    // Trigger original start logic
+    try{
+      document.getElementById('startButton').click();
+    }catch(e){
+      console.error(e);
+      // Fall back: show start overlay again
+      tlCodeError.textContent = '❌ 起動に失敗しました。ページを再読み込みしてお試しください。';
+      tlStartOverlay.style.display = 'flex';
+    }
+  });
+}
+
+// Allow Enter key to start
+if (tlConfirmCodeInput){
+  tlConfirmCodeInput.addEventListener('keydown', (ev) => {
+    if(ev.key === 'Enter') tlStartButton.click();
+  });
+}
+
+// Hook into result: we will wrap showResult by keeping original reference
+// (Because showResult is defined as a function declaration in this file.)
+try{
+  const __origShowResult = showResult;
+  window.showResult = function(timeSec, isMax){
+    // Call original UI updates
+    __origShowResult(timeSec, isMax);
+
+    // Store last score
+    tlLastTimeSec = Number(timeSec) || 0;
+    tlLastPoints = calcPointsFromTimeSec(tlLastTimeSec);
+
+    // Populate result overlay
+    tlResultPoints.textContent = `${tlLastPoints} pt`;
+    tlResultTime.textContent = `発声時間: ${tlLastTimeSec.toFixed(2)} 秒`;
+    tlResultCode.textContent = tlConfirmCode || '-';
+
+    // Show result overlay after cleanup visuals settle
+    setTimeout(() => {
+      tlShowResult();
+    }, 200);
+  };
+}catch(e){
+  console.warn('showResult hook failed:', e);
+}
+
+// Retry: start again with same code
+if (tlRetryButton){
+  tlRetryButton.addEventListener('click', () => {
+    tlResultOverlay.style.display = 'none';
+    // Trigger original start
+    try{
+      document.getElementById('startButton').click();
+    }catch(e){
+      console.error(e);
+      tlShowStart();
+    }
+  });
+}
+
+// Change code: back to start screen
+if (tlChangeCodeButton){
+  tlChangeCodeButton.addEventListener('click', () => {
+    tlShowStart();
+  });
+}
+
+// Submit to GAS
+if (tlSubmitButton){
+  tlSubmitButton.addEventListener('click', async () => {
+    if(!tlConfirmCode){
+      tlSubmitStatus.textContent = '❌ 確認コードが未設定です。';
+      tlSubmitStatus.style.color = '#e94e77';
+      return;
+    }
+
+    tlSubmitButton.disabled = true;
+    tlSubmitStatus.textContent = '送信中...';
+    tlSubmitStatus.style.color = '#555';
+
+    const payload = {
+      apiKey: TL_API_KEY,
+      confirmCode: tlConfirmCode,
+      // Keep compatibility: send points as score
+      score: tlLastPoints,
+      // Additional fields
+      timeSec: Number(tlLastTimeSec.toFixed(2)),
+      points: tlLastPoints,
+      userAgent: navigator.userAgent,
+      // optional client timestamp
+      clientTime: new Date().toISOString(),
+    };
+
+    try{
+      // Use no-cors to avoid CORS issues in simple hosting
+      await fetch(TL_GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload),
+      });
+      tlSubmitStatus.textContent = '✅ 送信しました！ありがとうございました。';
+      tlSubmitStatus.style.color = '#28a745';
+    }catch(err){
+      console.error(err);
+      tlSubmitStatus.textContent = '❌ 送信に失敗しました。もう一度お試しください。';
+      tlSubmitStatus.style.color = '#e94e77';
+      tlSubmitButton.disabled = false;
+    }
+  });
+}
+
+// On load, show start overlay by default
+// (Original UI remains behind the overlay.)
+tlShowStart();
+
+</script>
 
 </body>
 </html>
