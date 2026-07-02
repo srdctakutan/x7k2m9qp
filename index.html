@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="theme-color" content="#00796b" />
-<title>睡眠時の呼吸セルフチェック v3.9（モバイル＋音量較正）</title>
+<title>睡眠時の呼吸セルフチェック v4.0（4タスク短縮版）</title>
 <style>
 :root{
   --primary:#00796b; --primary-dark:#005f56; --accent:#ff5252;
@@ -25,7 +25,7 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN',Meiryo,sans-serif;
   background:var(--bg); color:var(--text);
   font-size:16px; line-height:1.55;
-  min-height:100vh; min-height:100dvh;
+  min-height:100dvh; min-height:100vh;
   display:flex; flex-direction:column;
   overflow:hidden;
   overscroll-behavior:contain;
@@ -74,6 +74,14 @@ h2{font-size:1.3rem; color:var(--primary-dark); font-weight:900; line-height:1.3
 .btn-ng{background:var(--ng); box-shadow:0 6px 16px rgba(211,47,47,.2);}
 .note{font-size:.84rem; color:var(--muted); line-height:1.7; margin-top:8px; text-align:center;}
 .part-label{display:inline-block; padding:5px 14px; border-radius:999px; font-size:.84rem; background:var(--primary); color:#fff; margin-bottom:10px; font-weight:800;}
+.task-progress{display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; margin:0 auto 10px; max-width:100%;}
+.task-chip{display:inline-flex; align-items:center; justify-content:center; padding:5px 9px; border-radius:999px; border:1px solid #b9d7d2; color:var(--primary); background:#fff; font-size:.82rem; font-weight:800; line-height:1.2; white-space:nowrap;}
+.task-chip.current{background:var(--primary); color:#fff; border-color:var(--primary); box-shadow:0 4px 10px rgba(0,121,107,.18);}
+.task-chip.done{background:#eef1f2; color:#9aa3a8; border-color:#e1e5e7; text-decoration:line-through; box-shadow:none;}
+.task-arrow{color:#8ab7af; font-weight:900; font-size:.9rem; line-height:1;}
+.task-arrow.done{color:#c5cccf;}
+@media (max-width:360px){.task-progress{gap:4px}.task-chip{font-size:.76rem;padding:5px 7px}.task-arrow{font-size:.78rem}}
+
 .guide-text{color:#555; font-size:.96rem; margin-bottom:14px;}
 .utterance-text{background:#fff8f8; border:2px solid #ffd4d4; color:var(--accent); border-radius:14px; padding:16px 14px; font-size:2rem; font-weight:900; line-height:1.3; margin:10px 0 16px;}
 .countdown-321{min-height:6.5rem; display:flex; align-items:center; justify-content:center; font-size:5.5rem; font-weight:900; color:var(--primary); line-height:1;}
@@ -139,15 +147,17 @@ canvas{width:100%; height:74px; background:#fafafa; border:1px solid #eef1f4; bo
     <div class="screen-body">
       <h1>睡眠時の呼吸セルフチェック</h1>
       <div class="intro-copy">
-        <p>このアプリでは、ガイドに従って約40秒発声していただくだけで、ご自身の「睡眠時の呼吸のスムーズさ」の傾向をセルフチェックできます。</p>
+        <p>このアプリでは、ガイドに従って4つの短い発話を行っていただくだけで、ご自身の「睡眠時の呼吸のスムーズさ」の傾向をセルフチェックできます。</p>
         <p>ご自身の声の特徴から、睡眠時の呼吸のスムーズさが「高い」「低い」のどちらのグループに似た傾向かで結果を表示します。</p>
         <p>睡眠時の呼吸のスムーズさの傾向が「低い」グループは睡眠時無呼吸症候群等のリスクが高いという研究データに基づいています。
           <a class="link-inline" href="#" onclick="showAboutSAS();return false;">[Link 睡眠時無呼吸症候群とは？]</a>
         </p>
-        <button class="btn" style="margin:10px 0 14px;" onclick="startFromIntro()">チェックをはじめる</button>
         <p>本サービスは医療機器ではありません。疾病の診断・治療・予防を行うものではなく、ご自身の健康状態把握のための支援ツールです。</p>
       </div>
       <p class="note">※ マイクの使用許可が必要です。静かな場所で、画面の案内に従って発声してください。</p>
+    </div>
+    <div class="cta-bar">
+      <button class="btn" onclick="startFromIntro()">チェックをはじめる</button>
     </div>
   </div>
 
@@ -192,7 +202,7 @@ canvas{width:100%; height:74px; background:#fafafa; border:1px solid #eef1f4; bo
 
   <div id="screen-sas-1-1" class="screen">
     <div class="screen-body">
-      <span class="part-label">①／４ 読み上げ</span>
+      <div class="task-progress" data-current="sas-1-1" aria-label="読み上げタスクの進行状況"></div>
       <p class="guide-text">ゆっくり読み上げてください。</p>
       <div class="utterance-text">「あいうえお」</div>
       <div class="countdown-321" id="cd-sas-1-1">３</div>
@@ -200,7 +210,7 @@ canvas{width:100%; height:74px; background:#fafafa; border:1px solid #eef1f4; bo
   </div>
   <div id="screen-rec-sas-1-1" class="screen">
     <div class="screen-body">
-      <span class="part-label">①／４ 読み上げ</span>
+      <div class="task-progress" data-current="sas-1-1" aria-label="読み上げタスクの進行状況"></div>
       <p class="guide-text">ゆっくり読み上げてください。</p>
       <div class="utterance-text">「あいうえお」</div>
       <div class="rec-indicator"><span class="rec-dot"></span>録音中</div>
@@ -210,7 +220,7 @@ canvas{width:100%; height:74px; background:#fafafa; border:1px solid #eef1f4; bo
   </div>
   <div id="screen-sas-1-2" class="screen">
     <div class="screen-body">
-      <span class="part-label">①／４ 読み上げ</span>
+      <div class="task-progress" data-current="sas-1-2" aria-label="読み上げタスクの進行状況"></div>
       <p class="guide-text">ゆっくり読み上げてください。</p>
       <div class="utterance-text">「がぎぐげご」</div>
       <div class="countdown-321" id="cd-sas-1-2">３</div>
@@ -218,7 +228,7 @@ canvas{width:100%; height:74px; background:#fafafa; border:1px solid #eef1f4; bo
   </div>
   <div id="screen-rec-sas-1-2" class="screen">
     <div class="screen-body">
-      <span class="part-label">①／４ 読み上げ</span>
+      <div class="task-progress" data-current="sas-1-2" aria-label="読み上げタスクの進行状況"></div>
       <p class="guide-text">ゆっくり読み上げてください。</p>
       <div class="utterance-text">「がぎぐげご」</div>
       <div class="rec-indicator"><span class="rec-dot"></span>録音中</div>
@@ -228,7 +238,7 @@ canvas{width:100%; height:74px; background:#fafafa; border:1px solid #eef1f4; bo
   </div>
   <div id="screen-sas-1-3" class="screen">
     <div class="screen-body">
-      <span class="part-label">①／４ 読み上げ</span>
+      <div class="task-progress" data-current="sas-1-3" aria-label="読み上げタスクの進行状況"></div>
       <p class="guide-text">ゆっくり読み上げてください。</p>
       <div class="utterance-text">「らりるれろ」</div>
       <div class="countdown-321" id="cd-sas-1-3">３</div>
@@ -236,7 +246,7 @@ canvas{width:100%; height:74px; background:#fafafa; border:1px solid #eef1f4; bo
   </div>
   <div id="screen-rec-sas-1-3" class="screen">
     <div class="screen-body">
-      <span class="part-label">①／４ 読み上げ</span>
+      <div class="task-progress" data-current="sas-1-3" aria-label="読み上げタスクの進行状況"></div>
       <p class="guide-text">ゆっくり読み上げてください。</p>
       <div class="utterance-text">「らりるれろ」</div>
       <div class="rec-indicator"><span class="rec-dot"></span>録音中</div>
@@ -246,7 +256,7 @@ canvas{width:100%; height:74px; background:#fafafa; border:1px solid #eef1f4; bo
   </div>
   <div id="screen-sas-1-4" class="screen">
     <div class="screen-body">
-      <span class="part-label">①／４ 読み上げ</span>
+      <div class="task-progress" data-current="sas-1-4" aria-label="読み上げタスクの進行状況"></div>
       <p class="guide-text">ゆっくり読み上げてください。</p>
       <div class="utterance-text">「ぱぴぷぺぽ」</div>
       <div class="countdown-321" id="cd-sas-1-4">３</div>
@@ -254,7 +264,7 @@ canvas{width:100%; height:74px; background:#fafafa; border:1px solid #eef1f4; bo
   </div>
   <div id="screen-rec-sas-1-4" class="screen">
     <div class="screen-body">
-      <span class="part-label">①／４ 読み上げ</span>
+      <div class="task-progress" data-current="sas-1-4" aria-label="読み上げタスクの進行状況"></div>
       <p class="guide-text">ゆっくり読み上げてください。</p>
       <div class="utterance-text">「ぱぴぷぺぽ」</div>
       <div class="rec-indicator"><span class="rec-dot"></span>録音中</div>
@@ -390,16 +400,16 @@ canvas{width:100%; height:74px; background:#fafafa; border:1px solid #eef1f4; bo
         <div class="result-tag">睡眠時の呼吸のスムーズさ</div>
         <div class="result-level">低い</div>
         <div class="result-summary">
-          ご自身の声の特徴は、睡眠時の呼吸のスムーズさが「低い」グループに似た傾向として表示されています。<br/>
-          「低い」グループは、睡眠時無呼吸症候群等のリスクが高いという研究データに基づいています。
+          声の周波数などの特徴を分析した結果、利用者と似た声の特徴を持つ人たちのグループは、一般的なグループに比べて、睡眠中の呼吸のスムーズさが低いというデータがあります。<br/>
+          このグループのデータ傾向は、睡眠時の姿勢や疲れ具合によって呼吸のリズムが影響を受けやすい、いわゆる「デリケートブレス傾向」の集団に分類されます。
         </div>
         <div class="disclaimer">
-          本サービスは医療機器ではありません。疾病の診断・治療・予防を行うものではなく、ご自身の健康状態把握のための支援ツールです。気になる症状がある場合は、医療機関への相談をご検討ください。
+          ※本サービスは、疾病の診断・治療・予防を目的としたものではありません。
         </div>
       </div>
       <div class="download-panel">
         <h3>録音データのダウンロード</h3>
-        <p class="note" style="margin:0 0 6px 0; text-align:left;">10個の録音データを WAV 形式でまとめて ZIP ダウンロードできます。</p>
+        <p class="note" style="margin:0 0 6px 0; text-align:left;">4個の録音データを WAV 形式でまとめて ZIP ダウンロードできます。</p>
         <button class="btn" id="download-zip-btn" onclick="downloadAllWavZip()">WAVファイル一式（ZIP）をダウンロード</button>
         <div class="playback-list" id="playback-list"></div>
       </div>
@@ -441,36 +451,21 @@ let calibrationGain=1.0;
 
 const recordings={};
 const labels={
-  'sas-1-1':'①あいうえお','sas-1-2':'①がぎぐげご','sas-1-3':'①らりるれろ','sas-1-4':'①ぱぴぷぺぽ',
-  'sas-2-1':'②あーーー','sas-2-2':'②えーーー','sas-2-3':'②うーーー',
-  'sas-3':'③ぱたか',
-  'sas-4-1':'④きのうは…','sas-4-2':'④疲れて…'
+  'sas-1-1':'あいうえお','sas-1-2':'がぎぐげご','sas-1-3':'らりるれろ','sas-1-4':'ぱぴぷぺぽ'
 };
 
 const steps=[
   {id:'screen-intro'},
   {id:'screen-env-check'},
   {id:'screen-mic-test'},
-  {id:'screen-sas-1-1',type:'cd',cdId:'cd-sas-1-1'},
+  {id:'screen-sas-1-1',type:'cd',cdId:'cd-sas-1-1',taskKey:'sas-1-1'},
   {id:'screen-rec-sas-1-1',type:'rec',timerId:'timer-sas-1-1',canvasId:'canvas-sas-1-1',duration:4,key:'sas-1-1'},
-  {id:'screen-sas-1-2',type:'cd',cdId:'cd-sas-1-2'},
+  {id:'screen-sas-1-2',type:'cd',cdId:'cd-sas-1-2',taskKey:'sas-1-2'},
   {id:'screen-rec-sas-1-2',type:'rec',timerId:'timer-sas-1-2',canvasId:'canvas-sas-1-2',duration:4,key:'sas-1-2'},
-  {id:'screen-sas-1-3',type:'cd',cdId:'cd-sas-1-3'},
+  {id:'screen-sas-1-3',type:'cd',cdId:'cd-sas-1-3',taskKey:'sas-1-3'},
   {id:'screen-rec-sas-1-3',type:'rec',timerId:'timer-sas-1-3',canvasId:'canvas-sas-1-3',duration:4,key:'sas-1-3'},
-  {id:'screen-sas-1-4',type:'cd',cdId:'cd-sas-1-4'},
+  {id:'screen-sas-1-4',type:'cd',cdId:'cd-sas-1-4',taskKey:'sas-1-4'},
   {id:'screen-rec-sas-1-4',type:'rec',timerId:'timer-sas-1-4',canvasId:'canvas-sas-1-4',duration:4,key:'sas-1-4'},
-  {id:'screen-sas-2-1',type:'cd',cdId:'cd-sas-2-1'},
-  {id:'screen-rec-sas-2-1',type:'rec',timerId:'timer-sas-2-1',canvasId:'canvas-sas-2-1',duration:3,key:'sas-2-1'},
-  {id:'screen-sas-2-2',type:'cd',cdId:'cd-sas-2-2'},
-  {id:'screen-rec-sas-2-2',type:'rec',timerId:'timer-sas-2-2',canvasId:'canvas-sas-2-2',duration:3,key:'sas-2-2'},
-  {id:'screen-sas-2-3',type:'cd',cdId:'cd-sas-2-3'},
-  {id:'screen-rec-sas-2-3',type:'rec',timerId:'timer-sas-2-3',canvasId:'canvas-sas-2-3',duration:3,key:'sas-2-3'},
-  {id:'screen-sas-3',type:'cd',cdId:'cd-sas-3'},
-  {id:'screen-rec-sas-3',type:'rec',timerId:'timer-sas-3',canvasId:'canvas-sas-3',duration:4,key:'sas-3'},
-  {id:'screen-sas-4-1',type:'cd',cdId:'cd-sas-4-1'},
-  {id:'screen-rec-sas-4-1',type:'rec',timerId:'timer-sas-4-1',canvasId:'canvas-sas-4-1',duration:4,key:'sas-4-1'},
-  {id:'screen-sas-4-2',type:'cd',cdId:'cd-sas-4-2'},
-  {id:'screen-rec-sas-4-2',type:'rec',timerId:'timer-sas-4-2',canvasId:'canvas-sas-4-2',duration:4,key:'sas-4-2'},
   {id:'screen-analyzing'},
   {id:'screen-result'}
 ];
@@ -486,11 +481,39 @@ function initStepper(){
     stepper.appendChild(dot);
   });
 }
+
+function renderTaskProgress(){
+  const taskFlow=[
+    {key:'sas-1-1',text:'あいうえお'},
+    {key:'sas-1-2',text:'がぎぐげご'},
+    {key:'sas-1-3',text:'らりるれろ'},
+    {key:'sas-1-4',text:'ぱぴぷぺぽ'}
+  ];
+  document.querySelectorAll('.task-progress').forEach(box=>{
+    const currentKey=box.dataset.current;
+    const currentIndex=taskFlow.findIndex(t=>t.key===currentKey);
+    box.innerHTML='';
+    taskFlow.forEach((task,i)=>{
+      const chip=document.createElement('span');
+      chip.className='task-chip'+(i<currentIndex?' done':(i===currentIndex?' current':''));
+      chip.textContent=task.text;
+      box.appendChild(chip);
+      if(i<taskFlow.length-1){
+        const arrow=document.createElement('span');
+        arrow.className='task-arrow'+(i<currentIndex?' done':'');
+        arrow.textContent='→';
+        box.appendChild(arrow);
+      }
+    });
+  });
+}
+
 function showStep(idx){
   document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
   document.getElementById(steps[idx].id).classList.add('active');
   currentStep=idx;
   initStepper();
+  renderTaskProgress();
   fitCanvases();
 }
 function nextStep(){
@@ -1008,7 +1031,7 @@ function crc32(bytes){let crc=0^(-1);for(let i=0;i<bytes.length;i++) crc=(crc>>>
 
 window.addEventListener('resize',fitCanvases);
 window.addEventListener('orientationchange', ()=> setTimeout(fitCanvases, 200));
-document.addEventListener('DOMContentLoaded',()=>{ fitCanvases(); initStepper(); });
+document.addEventListener('DOMContentLoaded',()=>{ fitCanvases(); initStepper(); renderTaskProgress(); });
 </script>
 </body>
 </html>
